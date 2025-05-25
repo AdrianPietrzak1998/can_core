@@ -47,77 +47,79 @@ typedef CC_TIME_BASE_TYPE_CUSTOM CC_TIME_t;
 
 #endif
 
-typedef enum{
-	CC_BUS_BUSY = 0,
-	CC_BUS_FREE
-}CC_BusIsFree_t;
+typedef enum
+{
+    CC_BUS_BUSY = 0,
+    CC_BUS_FREE
+} CC_BusIsFree_t;
 
-typedef enum{
-	CC_MSG_UNREG,
-	CC_MSG_REG
-}CC_MsgRegStatus_t;
+typedef enum
+{
+    CC_MSG_UNREG,
+    CC_MSG_REG
+} CC_MsgRegStatus_t;
 
-typedef struct {
-	uint32_t ID;
-	uint8_t Data[8];
-	uint8_t DLC : 4;
-	uint8_t IDE_flag :1;
-	CC_TIME_t Time;
-}CC_RX_message_t;
+typedef struct
+{
+    uint32_t ID;
+    uint8_t Data[8];
+    uint8_t DLC : 4;
+    uint8_t IDE_flag : 1;
+    CC_TIME_t Time;
+} CC_RX_message_t;
 
 typedef struct CC_RX_instance_t CC_RX_instance_t;
-typedef struct {
-	uint16_t SlotNo;
-	uint32_t ID;
-	uint8_t DLC : 4;
-	uint8_t IDE_flag :1;
-	CC_TIME_t TimeOut;
-	void (*Parser)(const CC_RX_instance_t *Instance, CC_RX_message_t *Msg, uint16_t Slot);
-	CC_TIME_t LastTick;
-}CC_RX_table_t;
+typedef struct
+{
+    uint16_t SlotNo;
+    uint32_t ID;
+    uint8_t DLC : 4;
+    uint8_t IDE_flag : 1;
+    CC_TIME_t TimeOut;
+    void (*Parser)(const CC_RX_instance_t *Instance, CC_RX_message_t *Msg, uint16_t Slot);
+    CC_TIME_t LastTick;
+} CC_RX_table_t;
 
 struct CC_RX_instance_t
 {
-	CC_RX_message_t Buf[CC_RX_BUFFER_SIZE];
-	uint16_t Head, Tail;
-	CC_RX_table_t *RxTable;
-	uint16_t TableSize;
-	void (*Parser_unreg_msg)(const CC_RX_instance_t *Instance, CC_RX_message_t *Msg);
-	void (*TimeoutCallback)(CC_RX_instance_t *Instance, uint16_t Slot);
+    CC_RX_message_t Buf[CC_RX_BUFFER_SIZE];
+    uint16_t Head, Tail;
+    CC_RX_table_t *RxTable;
+    uint16_t TableSize;
+    void (*Parser_unreg_msg)(const CC_RX_instance_t *Instance, CC_RX_message_t *Msg);
+    void (*TimeoutCallback)(CC_RX_instance_t *Instance, uint16_t Slot);
 };
 
-
-
-
-typedef struct {
-	uint32_t ID;
-	uint8_t Data[8];
-	uint8_t DLC : 4;
-	uint8_t IDE_flag :1;
-}CC_TX_message_t;
+typedef struct
+{
+    uint32_t ID;
+    uint8_t Data[8];
+    uint8_t DLC : 4;
+    uint8_t IDE_flag : 1;
+} CC_TX_message_t;
 
 typedef struct CC_TX_instance_t CC_TX_instance_t;
 typedef struct CC_TX_table_t CC_TX_table_t;
 struct CC_TX_table_t
 {
-	uint16_t SlotNo;
-	uint32_t ID;
-	uint8_t *Data;
-	uint8_t DLC : 4;
-	uint8_t IDE_flag :1;
-	CC_TIME_t SendFreq;
-	void (*Parser)(const CC_TX_instance_t *Instance, uint8_t *Data, CC_TX_table_t *TxTable);
-	CC_TIME_t LastTick;
+    uint16_t SlotNo;
+    uint32_t ID;
+    uint8_t *Data;
+    uint8_t DLC : 4;
+    uint8_t IDE_flag : 1;
+    CC_TIME_t SendFreq;
+    void (*Parser)(const CC_TX_instance_t *Instance, uint8_t *Data, CC_TX_table_t *TxTable);
+    CC_TIME_t LastTick;
 };
 
 struct CC_TX_instance_t
 {
-	CC_TX_message_t Buf[CC_TX_BUFFER_SIZE];
-	uint16_t Head, Tail;
-	CC_TX_table_t *TxTable;
-	uint16_t TableSize;
-	void (*SendFunction)(const CC_TX_instance_t *Instance, const CC_TX_message_t *msg);
-	CC_BusIsFree_t (*BusCheck)(const CC_TX_instance_t *Instance);
+    CC_TX_message_t Buf[CC_TX_BUFFER_SIZE];
+    uint16_t Head, Tail;
+    CC_TX_table_t *TxTable;
+    uint16_t TableSize;
+    void (*SendFunction)(const CC_TX_instance_t *Instance, const CC_TX_message_t *msg);
+    CC_BusIsFree_t (*BusCheck)(const CC_TX_instance_t *Instance);
 };
 
 // Tick source registration
@@ -127,9 +129,15 @@ void CC_tick_function_register(CC_TIME_t (*Function)(void));
 void CC_tick_variable_register(CC_TIME_t *Variable);
 #endif
 
+void CC_RX_init(CC_RX_instance_t *Instance, CC_RX_table_t *RxTable, uint16_t TableSize,
+                void (*Parser_unreg_msg)(const CC_RX_instance_t *Instance, CC_RX_message_t *Msg),
+                void (*TimeoutCallback)(CC_RX_instance_t *Instance, uint16_t Slot));
 void CC_RX_PushMsg(CC_RX_instance_t *Instance, uint32_t ID, uint8_t *Data, uint8_t DLC, uint8_t IDE_flag);
 void CC_RX_Poll(CC_RX_instance_t *Instance);
 
+void CC_TX_init(CC_TX_instance_t *Instance, CC_TX_table_t *TxTable, uint16_t TableSize,
+                void (*SendFunction)(const CC_TX_instance_t *Instance, const CC_TX_message_t *msg),
+                CC_BusIsFree_t (*BusCheck)(const CC_TX_instance_t *Instance));
 void CC_TX_PushMsg(CC_TX_instance_t *Instance, uint32_t ID, uint8_t *Data, uint8_t DLC, uint8_t IDE_flag);
 void CC_TX_Poll(CC_TX_instance_t *Instance);
 
