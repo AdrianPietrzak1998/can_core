@@ -97,21 +97,24 @@ typedef struct {
 }CC_TX_message_t;
 
 typedef struct CC_TX_instance_t CC_TX_instance_t;
-typedef struct
+typedef struct CC_TX_table_t CC_TX_table_t;
+struct CC_TX_table_t
 {
+	uint16_t SlotNo;
 	uint32_t ID;
 	uint8_t *Data;
 	uint8_t DLC : 4;
 	uint8_t IDE_flag :1;
-	CC_TIME_t TimeOut;
+	CC_TIME_t SendFreq;
+	void (*Parser)(const CC_TX_instance_t *Instance, uint8_t *Data, CC_TX_table_t *TxTable);
 	CC_TIME_t LastTick;
-}CC_TX_table_t;
+};
 
 struct CC_TX_instance_t
 {
 	CC_TX_message_t Buf[CC_TX_BUFFER_SIZE];
 	uint16_t Head, Tail;
-	CC_RX_table_t *TxTable;
+	CC_TX_table_t *TxTable;
 	uint16_t TableSize;
 	void (*SendFunction)(const CC_TX_instance_t *Instance, const CC_TX_message_t *msg);
 	CC_BusIsFree_t (*BusCheck)(const CC_TX_instance_t *Instance);
