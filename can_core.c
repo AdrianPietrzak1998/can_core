@@ -58,7 +58,7 @@ void CC_TX_init(CC_TX_instance_t *Instance, CC_TX_table_t *TxTable, uint16_t Tab
 }
 static inline void CopyBuf(uint8_t *restrict src, uint8_t *restrict dst, size_t size)
 {
-    assert((src != NULL) || (dst != NULL));
+    assert((src != NULL) && (dst != NULL));
 
     for (size_t i; i < size; i++)
     {
