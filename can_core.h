@@ -80,144 +80,168 @@ typedef CC_TIME_BASE_TYPE_CUSTOM CC_TIME_t;
 #endif
 
 /**
- * @enum CC_BusIsFree_t
- * @brief Indicates the status of the CAN bus.
+ * @brief Enumeration indicating the status of the CAN bus.
  *
- * Represents whether the CAN bus is free for transmitting a new message
+ * This enum represents whether the CAN bus is free for transmitting a new message
  * or if it is currently busy.
+ *
+ * Values:
+ * - CC_BUS_BUSY: The CAN bus is currently busy and cannot accept new messages.
+ * - CC_BUS_FREE: The CAN bus is free and ready for new message transmission.
  */
 typedef enum
 {
-    CC_BUS_BUSY = 0, /**< The CAN bus is currently busy and cannot accept new messages. */
-    CC_BUS_FREE      /**< The CAN bus is free and ready for new message transmission. */
+    CC_BUS_BUSY = 0,
+    CC_BUS_FREE
 } CC_BusIsFree_t;
 
 /**
- * @enum CC_MsgRegStatus_t
- * @brief Status of a received CAN message registration.
+ * @brief Enumeration representing the registration status of a received CAN message.
  *
- * Indicates whether the received CAN message is registered
+ * This enum indicates whether the received CAN message is registered
  * in the message table or not.
+ *
+ * Values:
+ * - CC_MSG_UNREG: The received message is not registered in the message table.
+ * - CC_MSG_REG: The received message is registered in the message table.
  */
 typedef enum
 {
-    CC_MSG_UNREG, /**< The received message is not registered in the message table. */
-    CC_MSG_REG    /**< The received message is registered in the message table. */
+    CC_MSG_UNREG,
+    CC_MSG_REG
 } CC_MsgRegStatus_t;
 
 /**
- * @struct CC_RX_message_t
  * @brief Structure representing a CAN message stored in the receive buffer.
  *
- * Contains the message ID, data payload, data length code (DLC),
- * identifier extension flag (IDE_flag), and the timestamp of reception.
+ * Fields:
+ * - ID: CAN message identifier.
+ * - Data: CAN message data payload (up to 8 bytes).
+ * - DLC: Data Length Code, number of valid data bytes (0-8).
+ * - IDE_flag: Identifier Extension flag (0 = standard, 1 = extended).
+ * - Time: Timestamp when the message was received.
  */
 typedef struct
 {
-    uint32_t ID;          /**< CAN message identifier */
-    uint8_t Data[8];      /**< CAN message data payload (up to 8 bytes) */
-    uint8_t DLC : 4;      /**< Data Length Code: number of valid data bytes (0-8) */
-    uint8_t IDE_flag : 1; /**< Identifier Extension flag (0 = standard, 1 = extended) */
-    CC_TIME_t Time;       /**< Timestamp when the message was received */
+    uint32_t ID;
+    uint8_t Data[8];
+    uint8_t DLC : 4;
+    uint8_t IDE_flag : 1;
+    CC_TIME_t Time;
 } CC_RX_message_t;
 
 /**
- * @struct CC_RX_table_t
  * @brief Definition of an entry in the CAN receive message table.
  *
- * Contains slot number, message ID, data length code (DLC),
- * identifier extension flag (IDE_flag), timeout value,
- * pointer to a parser function, and the timestamp of the last received message.
+ * Fields:
+ * - SlotNo: Slot number in the receive table.
+ * - ID: CAN message identifier.
+ * - DLC: Data Length Code, expected number of data bytes.
+ * - IDE_flag: Identifier Extension flag (0 = standard, 1 = extended).
+ * - TimeOut: Timeout duration for this message slot.
+ * - Parser: Pointer to message parser callback function.
+ * - LastTick: Timestamp of the last received message in this slot.
  */
 typedef struct CC_RX_instance_t CC_RX_instance_t;
 typedef struct
 {
-    uint16_t SlotNo;      /**< Slot number in the receive table */
-    uint32_t ID;          /**< CAN message identifier */
-    uint8_t DLC : 4;      /**< Data Length Code: expected number of data bytes */
-    uint8_t IDE_flag : 1; /**< Identifier Extension flag (0 = standard, 1 = extended) */
-    CC_TIME_t TimeOut;    /**< Timeout duration for this message slot */
-    void (*Parser)(const CC_RX_instance_t *Instance, CC_RX_message_t *Msg,
-                   uint16_t Slot); /**< Pointer to message parser callback */
-    CC_TIME_t LastTick;            /**< Timestamp of the last received message in this slot */
+    uint16_t SlotNo;
+    uint32_t ID;
+    uint8_t DLC : 4;
+    uint8_t IDE_flag : 1;
+    CC_TIME_t TimeOut;
+    void (*Parser)(const CC_RX_instance_t *Instance, CC_RX_message_t *Msg, uint16_t Slot);
+    CC_TIME_t LastTick;
 } CC_RX_table_t;
 
 /**
- * @struct CC_RX_instance_t
  * @brief CAN receive instance structure.
  *
- * Manages the receive buffer, message table, and callback functions
- * for handling received CAN messages.
+ * Fields:
+ * - Buf: Circular buffer for received CAN messages.
+ * - Head: Index of the buffer head (write position).
+ * - Tail: Index of the buffer tail (read position).
+ * - RxTable: Pointer to the message registration table.
+ * - TableSize: Number of entries in the message table.
+ * - Parser_unreg_msg: Callback for unregistered messages.
+ * - TimeoutCallback: Callback for message timeout events.
  */
 struct CC_RX_instance_t
 {
-    CC_RX_message_t Buf[CC_RX_BUFFER_SIZE]; /**< Circular buffer for received CAN messages */
-    uint16_t Head;                          /**< Index of the buffer head (write position) */
-    uint16_t Tail;                          /**< Index of the buffer tail (read position) */
-    CC_RX_table_t *RxTable;                 /**< Pointer to the message registration table */
-    uint16_t TableSize;                     /**< Number of entries in the message table */
-    void (*Parser_unreg_msg)(const CC_RX_instance_t *Instance,
-                             CC_RX_message_t *Msg);                     /**< Callback for unregistered messages */
-    void (*TimeoutCallback)(CC_RX_instance_t *Instance, uint16_t Slot); /**< Callback for message timeout events */
+    CC_RX_message_t Buf[CC_RX_BUFFER_SIZE];
+    uint16_t Head;
+    uint16_t Tail;
+    CC_RX_table_t *RxTable;
+    uint16_t TableSize;
+    void (*Parser_unreg_msg)(const CC_RX_instance_t *Instance, CC_RX_message_t *Msg);
+    void (*TimeoutCallback)(CC_RX_instance_t *Instance, uint16_t Slot);
 };
 
 /**
- * @struct CC_TX_message_t
  * @brief Structure representing a CAN message prepared for transmission.
  *
- * Contains the message ID, data payload, data length code (DLC),
- * and identifier extension flag (IDE_flag).
+ * Fields:
+ * - ID: CAN message identifier.
+ * - Data: CAN message data payload (up to 8 bytes).
+ * - DLC: Data Length Code: number of valid data bytes (0-8).
+ * - IDE_flag: Identifier Extension flag (0 = standard, 1 = extended).
  */
 typedef struct
 {
-    uint32_t ID;          /**< CAN message identifier */
-    uint8_t Data[8];      /**< CAN message data payload (up to 8 bytes) */
-    uint8_t DLC : 4;      /**< Data Length Code: number of valid data bytes (0-8) */
-    uint8_t IDE_flag : 1; /**< Identifier Extension flag (0 = standard, 1 = extended) */
+    uint32_t ID;
+    uint8_t Data[8];
+    uint8_t DLC : 4;
+    uint8_t IDE_flag : 1;
 } CC_TX_message_t;
 
 /**
- * @struct CC_TX_table_t
  * @brief Definition of an entry in the CAN transmit message table.
  *
- * Contains slot number, message ID, pointer to data buffer,
- * data length code (DLC), identifier extension flag (IDE_flag),
- * transmission frequency, pointer to a parser function for preparing data,
- * and timestamp of the last transmission.
+ * Fields:
+ * - SlotNo: Slot number in the transmit table.
+ * - ID: CAN message identifier.
+ * - Data: Pointer to the data buffer to be transmitted.
+ * - DLC: Data Length Code: number of valid data bytes.
+ * - IDE_flag: Identifier Extension flag (0 = standard, 1 = extended).
+ * - SendFreq: Frequency at which the message should be sent (in system ticks).
+ * - Parser: Pointer to function that prepares data before sending.
+ * - LastTick: Timestamp of the last message transmission.
  */
 typedef struct CC_TX_instance_t CC_TX_instance_t;
 typedef struct CC_TX_table_t CC_TX_table_t;
 struct CC_TX_table_t
 {
-    uint16_t SlotNo;      /**< Slot number in the transmit table */
-    uint32_t ID;          /**< CAN message identifier */
-    uint8_t *Data;        /**< Pointer to the data buffer to be transmitted */
-    uint8_t DLC : 4;      /**< Data Length Code: number of valid data bytes */
-    uint8_t IDE_flag : 1; /**< Identifier Extension flag (0 = standard, 1 = extended) */
-    CC_TIME_t SendFreq;   /**< Frequency at which the message should be sent (in system ticks) */
-    void (*Parser)(const CC_TX_instance_t *Instance, uint8_t *Data,
-                   CC_TX_table_t *TxTable); /**< Pointer to function that prepares data before sending */
-    CC_TIME_t LastTick;                     /**< Timestamp of the last message transmission */
+    uint16_t SlotNo;
+    uint32_t ID;
+    uint8_t *Data;
+    uint8_t DLC : 4;
+    uint8_t IDE_flag : 1;
+    CC_TIME_t SendFreq;
+    void (*Parser)(const CC_TX_instance_t *Instance, uint8_t *Data, CC_TX_table_t *TxTable);
+    CC_TIME_t LastTick;
 };
 
 /**
- * @struct CC_TX_instance_t
  * @brief CAN transmit instance structure.
  *
- * Manages the transmit buffer, message table, and function pointers
- * for sending messages and checking bus status.
+ * Fields:
+ * - Buf: Circular buffer for CAN messages to be transmitted.
+ * - Head: Index of the buffer head (write position).
+ * - Tail: Index of the buffer tail (read position).
+ * - TxTable: Pointer to the transmit message registration table.
+ * - TableSize: Number of entries in the transmit message table.
+ * - SendFunction: Function pointer to the low-level send function.
+ * - BusCheck: Function pointer to check if the CAN bus is free.
  */
 struct CC_TX_instance_t
 {
-    CC_TX_message_t Buf[CC_TX_BUFFER_SIZE]; /**< Circular buffer for CAN messages to be transmitted */
-    uint16_t Head;                          /**< Index of the buffer head (write position) */
-    uint16_t Tail;                          /**< Index of the buffer tail (read position) */
-    CC_TX_table_t *TxTable;                 /**< Pointer to the transmit message registration table */
-    uint16_t TableSize;                     /**< Number of entries in the transmit message table */
-    void (*SendFunction)(const CC_TX_instance_t *Instance,
-                         const CC_TX_message_t *msg); /**< Function pointer to the low-level send function */
-    CC_BusIsFree_t (*BusCheck)(
-        const CC_TX_instance_t *Instance); /**< Function pointer to check if the CAN bus is free */
+    CC_TX_message_t Buf[CC_TX_BUFFER_SIZE];
+    uint16_t Head;
+    uint16_t Tail;
+    CC_TX_table_t *TxTable;
+    uint16_t TableSize;
+    void (*SendFunction)(const CC_TX_instance_t *Instance, const CC_TX_message_t *msg);
+    CC_BusIsFree_t (*BusCheck)(const CC_TX_instance_t *Instance);
 };
 
 #if CC_TICK_FROM_FUNC
