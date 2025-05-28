@@ -99,7 +99,7 @@ static inline void CopyBuf(uint8_t *restrict src, uint8_t *restrict dst, size_t 
 {
     assert((src != NULL) && (dst != NULL));
 
-    for (size_t i; i < size; i++)
+    for (size_t i = 0; i < size; i++)
     {
         dst[i] = src[i];
     }
