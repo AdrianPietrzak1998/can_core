@@ -138,6 +138,7 @@ void CC_RX_PushMsg(CC_RX_instance_t *Instance, uint32_t ID, uint8_t *Data, uint8
     Instance->Buf[Instance->Head].ID = ID;
     Instance->Buf[Instance->Head].DLC = DLC;
     Instance->Buf[Instance->Head].IDE_flag = IDE_flag;
+    Instance->Buf[Instance->Head].Time = CC_GET_TICK;
 
     if ((DLC > 0) && (DLC <= 8))
     {
